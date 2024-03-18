@@ -24,6 +24,7 @@ import warnings
 from abc import abstractmethod
 from inspect import signature
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type, Union
+import json
 
 from langchain_core.callbacks import (
     AsyncCallbackManager,
@@ -268,6 +269,13 @@ class ChildTool(BaseTool):
         self,
         tool_input: Union[str, Dict],
     ) -> Union[str, Dict[str, Any]]:
+        """The input might be a json format string, parse it to a dict if so."""
+        if isinstance(tool_input, str):
+            try:
+                tool_input = json.loads(tool_input)
+            except json.JSONDecodeError:
+                # Not a json format string, just pass to remaining code
+                pass
         """Convert tool input to pydantic model."""
         input_args = self.args_schema
         if isinstance(tool_input, str):
